@@ -1,0 +1,106 @@
+erDiagram
+    USER {
+        int id PK
+        string name
+        string username
+        string email UK
+        string password_hash
+        string role
+        string level
+        string avatar
+        datetime created_at
+        datetime last_login
+        boolean is_active
+    }
+    
+    COURSE {
+        int id PK
+        string title
+        string description
+        string category
+        string difficulty
+        int duration_hours
+        int instructor_id FK
+        datetime created_at
+        datetime updated_at
+        boolean is_active
+    }
+    
+    COURSE_MODULE {
+        int id PK
+        int course_id FK
+        string title
+        string description
+        string content
+        string video_url
+        string pdf_url
+        int order
+        int duration_minutes
+        datetime created_at
+        boolean is_active
+    }
+    
+    ENROLLMENT {
+        int id PK
+        int user_id FK
+        int course_id FK
+        datetime enrolled_at
+        datetime completed_at
+        float progress_percentage
+        datetime last_accessed
+        boolean is_active
+    }
+    
+    NOTE {
+        int id PK
+        string title
+        string content
+        string tags
+        boolean is_shared
+        int author_id FK
+        int course_id FK
+        datetime created_at
+        datetime updated_at
+        boolean is_active
+    }
+    
+    FORUM_POST {
+        int id PK
+        string title
+        string content
+        int author_id FK
+        int course_id FK
+        int votes
+        int views
+        datetime created_at
+        datetime updated_at
+        boolean is_active
+    }
+    
+    FORUM_COMMENT {
+        int id PK
+        string content
+        int author_id FK
+        int post_id FK
+        int parent_id FK
+        int votes
+        datetime created_at
+        datetime updated_at
+        boolean is_active
+    }
+    
+    %% Relacionamentos
+    USER ||--o{ COURSE : "instructs"
+    USER ||--o{ ENROLLMENT : "enrolls_in"
+    USER ||--o{ NOTE : "creates"
+    USER ||--o{ FORUM_POST : "authors"
+    USER ||--o{ FORUM_COMMENT : "writes"
+    
+    COURSE ||--o{ COURSE_MODULE : "contains"
+    COURSE ||--o{ ENROLLMENT : "has_enrollment"
+    COURSE ||--o{ NOTE : "relates_to"
+    COURSE ||--o{ FORUM_POST : "discusses"
+    
+    FORUM_POST ||--o{ FORUM_COMMENT : "has_comment"
+    FORUM_COMMENT ||--o{ FORUM_COMMENT : "replies_to"
+

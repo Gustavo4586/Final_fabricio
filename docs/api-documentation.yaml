@@ -1,0 +1,1399 @@
+openapi: 3.0.3
+info:
+  title: EduCollab API
+  description: |
+    API REST para a Plataforma de Aprendizado Colaborativo EduCollab.
+    
+    Esta API fornece endpoints para gerenciamento de usuários, cursos, anotações, 
+    fórum e sistema de recomendações em uma plataforma educacional colaborativa.
+    
+    ## Funcionalidades Principais
+    - Sistema de autenticação e autorização
+    - Gerenciamento completo de usuários e perfis
+    - CRUD de cursos e módulos educacionais
+    - Sistema de anotações colaborativas
+    - Fórum de discussões com comentários aninhados
+    - Dashboard com estatísticas e métricas
+    - Sistema de recomendações inteligentes
+    
+    ## Autenticação
+    A API utiliza autenticação baseada em sessão. Para acessar endpoints protegidos,
+    é necessário fazer login através do endpoint `/auth/login`.
+    
+  version: 1.0.0
+  contact:
+    name: EduCollab Support
+    email: support@educollab.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Servidor de desenvolvimento local
+  - url: https://api.educollab.com
+    description: Servidor de produção
+
+tags:
+  - name: Authentication
+    description: Endpoints de autenticação e autorização
+  - name: Users
+    description: Gerenciamento de usuários
+  - name: Courses
+    description: Gerenciamento de cursos e módulos
+  - name: Enrollments
+    description: Sistema de inscrições em cursos
+  - name: Notes
+    description: Sistema de anotações colaborativas
+  - name: Forum
+    description: Fórum de discussões
+  - name: Statistics
+    description: Estatísticas e relatórios
+  - name: System
+    description: Endpoints do sistema
+
+paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health check da API
+      description: Verifica se a API está funcionando corretamente
+      responses:
+        '200':
+          description: API funcionando normalmente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "OK"
+                  message:
+                    type: string
+                    example: "EduCollab API está funcionando"
+                  version:
+                    type: string
+                    example: "1.0.0"
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Cadastro de novo usuário
+      description: Cria uma nova conta de usuário na plataforma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  description: Nome completo do usuário
+                  example: "João Silva"
+                username:
+                  type: string
+                  description: Nome de usuário único (opcional, usa email se não fornecido)
+                  example: "joao_silva"
+                email:
+                  type: string
+                  format: email
+                  description: Email único do usuário
+                  example: "joao@educollab.com"
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário (mínimo 6 caracteres)
+                  example: "123456"
+                role:
+                  type: string
+                  enum: [aluno, tutor, admin]
+                  description: Papel do usuário no sistema
+                  default: "aluno"
+                  example: "aluno"
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuário criado com sucesso"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Dados inválidos ou usuário já existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login do usuário
+      description: Autentica um usuário e inicia uma sessão
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email do usuário
+                  example: "joao@educollab.com"
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                  example: "123456"
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Login realizado com sucesso"
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Listar usuários ativos
+      description: Retorna uma lista de todos os usuários ativos do sistema
+      responses:
+        '200':
+          description: Lista de usuários retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Obter usuário específico
+      description: Retorna os dados de um usuário específico
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      responses:
+        '200':
+          description: Dados do usuário retornados com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Users
+      summary: Atualizar usuário
+      description: Atualiza os dados de um usuário específico
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "João Silva Santos"
+                username:
+                  type: string
+                  example: "joao_santos"
+                email:
+                  type: string
+                  format: email
+                  example: "joao.santos@educollab.com"
+                role:
+                  type: string
+                  enum: [aluno, tutor, admin]
+                  example: "tutor"
+                level:
+                  type: string
+                  example: "Cabo"
+                avatar:
+                  type: string
+                  example: "https://example.com/avatar.jpg"
+                password:
+                  type: string
+                  format: password
+                  description: Nova senha (opcional)
+      responses:
+        '200':
+          description: Usuário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Users
+      summary: Desativar usuário
+      description: Desativa um usuário (soft delete)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      responses:
+        '200':
+          description: Usuário desativado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Usuário desativado com sucesso"
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/stats:
+    get:
+      tags:
+        - Statistics
+      summary: Estatísticas do usuário
+      description: Retorna estatísticas detalhadas de um usuário específico
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      responses:
+        '200':
+          description: Estatísticas retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStats'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/recommendations:
+    get:
+      tags:
+        - Statistics
+      summary: Recomendações para o usuário
+      description: Retorna cursos recomendados baseados no histórico do usuário
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      responses:
+        '200':
+          description: Recomendações retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses:
+    get:
+      tags:
+        - Courses
+      summary: Listar cursos ativos
+      description: Retorna uma lista de todos os cursos ativos
+      responses:
+        '200':
+          description: Lista de cursos retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Courses
+      summary: Criar novo curso
+      description: Cria um novo curso na plataforma
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - category
+                - instructor_id
+              properties:
+                title:
+                  type: string
+                  description: Título do curso
+                  example: "React Fundamentals"
+                description:
+                  type: string
+                  description: Descrição detalhada do curso
+                  example: "Aprenda os conceitos fundamentais do React"
+                category:
+                  type: string
+                  description: Categoria do curso
+                  example: "Desenvolvimento Web"
+                difficulty:
+                  type: string
+                  enum: [iniciante, intermediario, avancado]
+                  description: Nível de dificuldade
+                  default: "iniciante"
+                  example: "iniciante"
+                duration_hours:
+                  type: integer
+                  description: Duração em horas
+                  default: 0
+                  example: 20
+                instructor_id:
+                  type: integer
+                  description: ID do instrutor responsável
+                  example: 2
+      responses:
+        '201':
+          description: Curso criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /courses/{courseId}:
+    get:
+      tags:
+        - Courses
+      summary: Obter curso específico
+      description: Retorna os dados de um curso específico
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do curso
+          example: 1
+      responses:
+        '200':
+          description: Dados do curso retornados com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Curso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags:
+        - Courses
+      summary: Atualizar curso
+      description: Atualiza os dados de um curso específico
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do curso
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "React Avançado"
+                description:
+                  type: string
+                  example: "Conceitos avançados do React"
+                category:
+                  type: string
+                  example: "Desenvolvimento Web"
+                difficulty:
+                  type: string
+                  enum: [iniciante, intermediario, avancado]
+                  example: "avancado"
+                duration_hours:
+                  type: integer
+                  example: 40
+      responses:
+        '200':
+          description: Curso atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          description: Curso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags:
+        - Courses
+      summary: Desativar curso
+      description: Desativa um curso (soft delete)
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do curso
+          example: 1
+      responses:
+        '200':
+          description: Curso desativado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Curso desativado com sucesso"
+        '404':
+          description: Curso não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /enrollments:
+    post:
+      tags:
+        - Enrollments
+      summary: Criar inscrição
+      description: Inscreve um usuário em um curso
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - course_id
+              properties:
+                user_id:
+                  type: integer
+                  description: ID do usuário
+                  example: 1
+                course_id:
+                  type: integer
+                  description: ID do curso
+                  example: 1
+      responses:
+        '201':
+          description: Inscrição criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Enrollment'
+        '400':
+          description: Usuário já inscrito ou dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/enrollments:
+    get:
+      tags:
+        - Enrollments
+      summary: Listar inscrições do usuário
+      description: Retorna todas as inscrições ativas de um usuário
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do usuário
+          example: 1
+      responses:
+        '200':
+          description: Lista de inscrições retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Enrollment'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notes:
+    get:
+      tags:
+        - Notes
+      summary: Listar anotações
+      description: Retorna anotações com filtros opcionais
+      parameters:
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por ID do usuário
+          example: 1
+        - name: course_id
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por ID do curso
+          example: 1
+        - name: shared_only
+          in: query
+          schema:
+            type: boolean
+          description: Mostrar apenas anotações compartilhadas
+          example: true
+      responses:
+        '200':
+          description: Lista de anotações retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Notes
+      summary: Criar anotação
+      description: Cria uma nova anotação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+                - author_id
+              properties:
+                title:
+                  type: string
+                  description: Título da anotação
+                  example: "Conceitos de React Hooks"
+                content:
+                  type: string
+                  description: Conteúdo da anotação
+                  example: "React Hooks são uma adição ao React 16.8..."
+                tags:
+                  type: string
+                  description: Tags em formato JSON
+                  example: '["react", "hooks", "javascript"]'
+                is_shared:
+                  type: boolean
+                  description: Se a anotação é compartilhada
+                  default: false
+                  example: true
+                author_id:
+                  type: integer
+                  description: ID do autor
+                  example: 1
+                course_id:
+                  type: integer
+                  description: ID do curso (opcional)
+                  example: 1
+      responses:
+        '201':
+          description: Anotação criada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /notes/{noteId}:
+    put:
+      tags:
+        - Notes
+      summary: Atualizar anotação
+      description: Atualiza uma anotação específica
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único da anotação
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "React Hooks Avançados"
+                content:
+                  type: string
+                  example: "Conceitos avançados de React Hooks..."
+                tags:
+                  type: string
+                  example: '["react", "hooks", "avancado"]'
+                is_shared:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Anotação atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '404':
+          description: Anotação não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forum/posts:
+    get:
+      tags:
+        - Forum
+      summary: Listar posts do fórum
+      description: Retorna posts do fórum com filtros opcionais
+      parameters:
+        - name: course_id
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por ID do curso
+          example: 1
+      responses:
+        '200':
+          description: Lista de posts retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForumPost'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Forum
+      summary: Criar post no fórum
+      description: Cria um novo post no fórum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+                - author_id
+                - course_id
+              properties:
+                title:
+                  type: string
+                  description: Título do post
+                  example: "Dúvida sobre React Hooks"
+                content:
+                  type: string
+                  description: Conteúdo do post
+                  example: "Como usar useEffect corretamente?"
+                author_id:
+                  type: integer
+                  description: ID do autor
+                  example: 1
+                course_id:
+                  type: integer
+                  description: ID do curso
+                  example: 1
+      responses:
+        '201':
+          description: Post criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /forum/posts/{postId}/comments:
+    get:
+      tags:
+        - Forum
+      summary: Listar comentários do post
+      description: Retorna todos os comentários de um post específico
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do post
+          example: 1
+      responses:
+        '200':
+          description: Lista de comentários retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForumComment'
+        '404':
+          description: Post não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Forum
+      summary: Criar comentário
+      description: Cria um novo comentário em um post
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID único do post
+          example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+                - author_id
+              properties:
+                content:
+                  type: string
+                  description: Conteúdo do comentário
+                  example: "Você pode usar useEffect assim..."
+                author_id:
+                  type: integer
+                  description: ID do autor
+                  example: 2
+                parent_id:
+                  type: integer
+                  description: ID do comentário pai (para respostas)
+                  example: null
+      responses:
+        '201':
+          description: Comentário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumComment'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Post não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do usuário
+          example: 1
+        name:
+          type: string
+          description: Nome completo do usuário
+          example: "João Silva"
+        username:
+          type: string
+          description: Nome de usuário único
+          example: "joao_silva"
+        email:
+          type: string
+          format: email
+          description: Email único do usuário
+          example: "joao@educollab.com"
+        role:
+          type: string
+          enum: [aluno, tutor, admin]
+          description: Papel do usuário no sistema
+          example: "aluno"
+        level:
+          type: string
+          description: Nível militar do usuário
+          example: "Recruta"
+        avatar:
+          type: string
+          nullable: true
+          description: URL do avatar do usuário
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação da conta
+          example: "2025-06-30T13:10:05.482434"
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data do último login
+          example: null
+        is_active:
+          type: boolean
+          description: Se o usuário está ativo
+          example: true
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do curso
+          example: 1
+        title:
+          type: string
+          description: Título do curso
+          example: "Desenvolvimento Web Completo"
+        description:
+          type: string
+          description: Descrição detalhada do curso
+          example: "Aprenda HTML, CSS, JavaScript e frameworks modernos"
+        category:
+          type: string
+          description: Categoria do curso
+          example: "Desenvolvimento Web"
+        difficulty:
+          type: string
+          enum: [iniciante, intermediario, avancado]
+          description: Nível de dificuldade
+          example: "intermediario"
+        duration_hours:
+          type: integer
+          description: Duração em horas
+          example: 40
+        instructor_id:
+          type: integer
+          description: ID do instrutor responsável
+          example: 2
+        instructor_name:
+          type: string
+          description: Nome do instrutor
+          example: "Professor Silva"
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação do curso
+          example: "2025-06-30T13:10:05.489871"
+        updated_at:
+          type: string
+          format: date-time
+          description: Data da última atualização
+          example: "2025-06-30T13:10:05.489874"
+        is_active:
+          type: boolean
+          description: Se o curso está ativo
+          example: true
+        modules_count:
+          type: integer
+          description: Número de módulos do curso
+          example: 0
+
+    Enrollment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único da inscrição
+          example: 1
+        user_id:
+          type: integer
+          description: ID do usuário inscrito
+          example: 1
+        course_id:
+          type: integer
+          description: ID do curso
+          example: 1
+        enrolled_at:
+          type: string
+          format: date-time
+          description: Data da inscrição
+          example: "2025-06-30T13:10:05.495123"
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data de conclusão do curso
+          example: null
+        progress_percentage:
+          type: number
+          format: float
+          description: Percentual de progresso (0-100)
+          example: 85.0
+        last_accessed:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data do último acesso
+          example: null
+        is_active:
+          type: boolean
+          description: Se a inscrição está ativa
+          example: true
+
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único da anotação
+          example: 1
+        title:
+          type: string
+          description: Título da anotação
+          example: "Conceitos de React"
+        content:
+          type: string
+          description: Conteúdo da anotação
+          example: "React é uma biblioteca JavaScript para construir interfaces de usuário..."
+        tags:
+          type: string
+          nullable: true
+          description: Tags em formato JSON
+          example: '["react", "javascript", "frontend"]'
+        is_shared:
+          type: boolean
+          description: Se a anotação é compartilhada
+          example: true
+        author_id:
+          type: integer
+          description: ID do autor
+          example: 1
+        author_name:
+          type: string
+          description: Nome do autor
+          example: "João Silva"
+        course_id:
+          type: integer
+          nullable: true
+          description: ID do curso relacionado
+          example: 1
+        course_title:
+          type: string
+          nullable: true
+          description: Título do curso relacionado
+          example: "Desenvolvimento Web Completo"
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-06-30T13:10:05.497456"
+        updated_at:
+          type: string
+          format: date-time
+          description: Data da última atualização
+          example: "2025-06-30T13:10:05.497456"
+        is_active:
+          type: boolean
+          description: Se a anotação está ativa
+          example: true
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do post
+          example: 1
+        title:
+          type: string
+          description: Título do post
+          example: "Dúvida sobre React Hooks"
+        content:
+          type: string
+          description: Conteúdo do post
+          example: "Como usar useEffect corretamente?"
+        author_id:
+          type: integer
+          description: ID do autor
+          example: 1
+        author_name:
+          type: string
+          description: Nome do autor
+          example: "João Silva"
+        course_id:
+          type: integer
+          description: ID do curso relacionado
+          example: 1
+        course_title:
+          type: string
+          description: Título do curso relacionado
+          example: "Desenvolvimento Web Completo"
+        votes:
+          type: integer
+          description: Número de votos
+          example: 0
+        views:
+          type: integer
+          description: Número de visualizações
+          example: 0
+        comments_count:
+          type: integer
+          description: Número de comentários
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-06-30T13:10:05.501234"
+        updated_at:
+          type: string
+          format: date-time
+          description: Data da última atualização
+          example: "2025-06-30T13:10:05.501234"
+        is_active:
+          type: boolean
+          description: Se o post está ativo
+          example: true
+
+    ForumComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do comentário
+          example: 1
+        content:
+          type: string
+          description: Conteúdo do comentário
+          example: "Você pode usar useEffect assim..."
+        author_id:
+          type: integer
+          description: ID do autor
+          example: 2
+        author_name:
+          type: string
+          description: Nome do autor
+          example: "Professor Silva"
+        post_id:
+          type: integer
+          description: ID do post relacionado
+          example: 1
+        parent_id:
+          type: integer
+          nullable: true
+          description: ID do comentário pai (para respostas)
+          example: null
+        votes:
+          type: integer
+          description: Número de votos
+          example: 0
+        replies_count:
+          type: integer
+          description: Número de respostas
+          example: 0
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-06-30T13:10:05.503456"
+        updated_at:
+          type: string
+          format: date-time
+          description: Data da última atualização
+          example: "2025-06-30T13:10:05.503456"
+        is_active:
+          type: boolean
+          description: Se o comentário está ativo
+          example: true
+
+    UserStats:
+      type: object
+      properties:
+        completed_courses:
+          type: integer
+          description: Número de cursos concluídos
+          example: 0
+        notes_count:
+          type: integer
+          description: Número de anotações criadas
+          example: 1
+        forum_posts:
+          type: integer
+          description: Número de posts no fórum
+          example: 0
+        average_progress:
+          type: number
+          format: float
+          description: Progresso médio em percentual
+          example: 67.33
+        total_enrollments:
+          type: integer
+          description: Total de inscrições
+          example: 3
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Mensagem de erro
+          example: "Credenciais inválidas"
+

@@ -1,0 +1,119 @@
+graph TB
+    %% Atores
+    A[Aluno] 
+    T[Tutor]
+    AD[Admin]
+    S[Sistema]
+    
+    %% Casos de Uso - Autenticação
+    UC1[Fazer Login]
+    UC2[Fazer Cadastro]
+    UC3[Gerenciar Perfil]
+    
+    %% Casos de Uso - Cursos
+    UC4[Visualizar Cursos]
+    UC5[Inscrever-se em Curso]
+    UC6[Acompanhar Progresso]
+    UC7[Criar Curso]
+    UC8[Editar Curso]
+    UC9[Gerenciar Módulos]
+    
+    %% Casos de Uso - Anotações
+    UC10[Criar Anotação]
+    UC11[Editar Anotação]
+    UC12[Compartilhar Anotação]
+    UC13[Visualizar Anotações]
+    UC14[Organizar por Tags]
+    
+    %% Casos de Uso - Fórum
+    UC15[Criar Tópico]
+    UC16[Responder Tópico]
+    UC17[Votar em Post]
+    UC18[Moderar Fórum]
+    
+    %% Casos de Uso - Dashboard
+    UC19[Visualizar Dashboard]
+    UC20[Gerar Relatórios]
+    UC21[Ver Recomendações]
+    
+    %% Casos de Uso - Administração
+    UC22[Gerenciar Usuários]
+    UC23[Configurar Sistema]
+    UC24[Monitorar Atividades]
+    
+    %% Relacionamentos - Aluno
+    A --> UC1
+    A --> UC2
+    A --> UC3
+    A --> UC4
+    A --> UC5
+    A --> UC6
+    A --> UC10
+    A --> UC11
+    A --> UC12
+    A --> UC13
+    A --> UC14
+    A --> UC15
+    A --> UC16
+    A --> UC17
+    A --> UC19
+    A --> UC21
+    
+    %% Relacionamentos - Tutor
+    T --> UC1
+    T --> UC2
+    T --> UC3
+    T --> UC4
+    T --> UC7
+    T --> UC8
+    T --> UC9
+    T --> UC10
+    T --> UC11
+    T --> UC12
+    T --> UC13
+    T --> UC14
+    T --> UC15
+    T --> UC16
+    T --> UC17
+    T --> UC18
+    T --> UC19
+    T --> UC20
+    T --> UC21
+    
+    %% Relacionamentos - Admin
+    AD --> UC1
+    AD --> UC3
+    AD --> UC4
+    AD --> UC7
+    AD --> UC8
+    AD --> UC9
+    AD --> UC18
+    AD --> UC19
+    AD --> UC20
+    AD --> UC22
+    AD --> UC23
+    AD --> UC24
+    
+    %% Relacionamentos - Sistema
+    S --> UC6
+    S --> UC20
+    S --> UC21
+    S --> UC24
+    
+    %% Extensões e Inclusões
+    UC5 -.->|extends| UC6
+    UC10 -.->|includes| UC14
+    UC15 -.->|includes| UC4
+    UC16 -.->|includes| UC4
+    UC19 -.->|includes| UC6
+    UC21 -.->|includes| UC6
+    
+    %% Estilo
+    classDef actor fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef usecase fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef system fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    
+    class A,T,AD actor
+    class S system
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20,UC21,UC22,UC23,UC24 usecase
+

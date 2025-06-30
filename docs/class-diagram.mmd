@@ -1,0 +1,101 @@
+classDiagram
+    class User {
+        +int id
+        +string name
+        +string username
+        +string email
+        +string password_hash
+        +string role
+        +string level
+        +string avatar
+        +datetime created_at
+        +datetime last_login
+        +boolean is_active
+        +register()
+        +login()
+        +updateProfile()
+    }
+    
+    class Course {
+        +int id
+        +string title
+        +string description
+        +string category
+        +string difficulty
+        +int duration_hours
+        +int instructor_id
+        +datetime created_at
+        +datetime updated_at
+        +boolean is_active
+        +create()
+        +update()
+        +delete()
+    }
+    
+    class Enrollment {
+        +int id
+        +int user_id
+        +int course_id
+        +datetime enrolled_at
+        +datetime completed_at
+        +float progress_percentage
+        +datetime last_accessed
+        +boolean is_active
+        +enroll()
+        +updateProgress()
+    }
+    
+    class Note {
+        +int id
+        +string title
+        +string content
+        +string tags
+        +boolean is_shared
+        +int author_id
+        +int course_id
+        +datetime created_at
+        +datetime updated_at
+        +boolean is_active
+        +create()
+        +update()
+        +share()
+    }
+    
+    class ForumPost {
+        +int id
+        +string title
+        +string content
+        +int author_id
+        +int course_id
+        +int votes
+        +int views
+        +datetime created_at
+        +datetime updated_at
+        +boolean is_active
+        +create()
+        +vote()
+    }
+    
+    class ForumComment {
+        +int id
+        +string content
+        +int author_id
+        +int post_id
+        +int parent_id
+        +int votes
+        +datetime created_at
+        +datetime updated_at
+        +boolean is_active
+        +create()
+        +reply()
+    }
+    
+    User --> Enrollment
+    Course --> Enrollment
+    User --> Note
+    Course --> Note
+    User --> ForumPost
+    Course --> ForumPost
+    User --> ForumComment
+    ForumPost --> ForumComment
+
